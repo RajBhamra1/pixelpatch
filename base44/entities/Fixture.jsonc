@@ -1,0 +1,38 @@
+{
+  "name": "Fixture",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Fixture name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "strip",
+        "panel"
+      ],
+      "description": "Fixture type"
+    },
+    "pixel_count": {
+      "type": "number",
+      "description": "Number of pixels (strips)"
+    },
+    "rows": {
+      "type": "number",
+      "description": "Number of rows (panels)"
+    },
+    "cols": {
+      "type": "number",
+      "description": "Number of columns (panels)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional notes"
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ]
+}

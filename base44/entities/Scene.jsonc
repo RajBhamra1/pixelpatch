@@ -1,0 +1,70 @@
+{
+  "name": "Scene",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Scene name"
+    },
+    "canvas_width": {
+      "type": "number",
+      "description": "Canvas width in grid cells"
+    },
+    "canvas_height": {
+      "type": "number",
+      "description": "Canvas height in grid cells"
+    },
+    "placed_fixtures": {
+      "type": "array",
+      "description": "Fixtures placed on the canvas",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fixture_id": {
+            "type": "string"
+          },
+          "fixture_name": {
+            "type": "string"
+          },
+          "fixture_type": {
+            "type": "string"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "pixel_count": {
+            "type": "number"
+          },
+          "rows": {
+            "type": "number"
+          },
+          "cols": {
+            "type": "number"
+          },
+          "orientation": {
+            "type": "string",
+            "enum": [
+              "horizontal",
+              "vertical"
+            ]
+          },
+          "pixel_colors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
