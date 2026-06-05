@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useProject, PANELS_LIBRARY } from '@/store/projectStore';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import SidebarPanel from './SidebarPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +16,28 @@ export default function ModulesPanel() {
   const [width, setWidth] = useState('500');
   const [height, setHeight] = useState('500');
 
+  const { data: dbFixtures = [] } = useQuery({
+    queryKey: ['fixtures'],
+    queryFn: () => base44.entities.Fixture.list(),
+  });
+
+  // Merge DB fixtures into library format
+  const dbItems = dbFixtures.map((f) => {
+    const isPanel = f.type === 'panel';
+    const widthPx = isPanel ? (f.cols ?? 8) : (f.pixel_count ?? 30);
+    const heightPx = isPanel ? (f.rows ?? 8) : 1;
+    return {
+      brand: f.brand || 'Custom',
+      model: f.name,
+      widthPx,
+      heightPx,
+      _id: f.id,
+    };
+  });
+
+  // Built-in library brands + DB group
+  const builtInBrands = [...new Set(PANELS_LIBRARY.map((i) => i.brand))];
+
   const addType = () => {
     const w = parseInt(width, 10);
     const h = parseInt(height, 10);
@@ -25,13 +49,20 @@ export default function ModulesPanel() {
 
   const addFromLibrary = (key) => {
     if (!key) return;
-    const item = PANELS_LIBRARY.find((i) => `${i.brand}::${i.model}` === key);
-    if (!item) return;
-    const id = addModuleType(`${item.brand} ${item.model}`, item.widthPx, item.heightPx);
-    setActiveType(id);
+    // Try built-in first
+    const builtIn = PANELS_LIBRARY.find((i) => `builtin::${i.brand}::${i.model}` === key);
+    if (builtIn) {
+      const id = addModuleType(`${builtIn.brand} ${builtIn.model}`, builtIn.widthPx, builtIn.heightPx);
+      setActiveType(id);
+      return;
+    }
+    // Try DB fixture
+    const db = dbItems.find((i) => `db::${i._id}` === key);
+    if (db) {
+      const id = addModuleType(`${db.brand} ${db.model}`, db.widthPx, db.heightPx);
+      setActiveType(id);
+    }
   };
-
-  const brands = [...new Set(PANELS_LIBRARY.map((i) => i.brand))];
 
   return (
     <SidebarPanel title="Modules" defaultOpen={true}>
@@ -57,15 +88,24 @@ export default function ModulesPanel() {
           className="w-full h-7 text-xs rounded-md border border-border bg-secondary text-foreground px-2"
         >
           <option value="">— Add panel from library —</option>
-          {brands.map((brand) => (
+          {builtInBrands.map((brand) => (
             <optgroup key={brand} label={brand}>
               {PANELS_LIBRARY.filter((i) => i.brand === brand).map((i) => (
-                <option key={`${i.brand}::${i.model}`} value={`${i.brand}::${i.model}`}>
+                <option key={`builtin::${i.brand}::${i.model}`} value={`builtin::${i.brand}::${i.model}`}>
                   {i.model} ({i.widthPx}×{i.heightPx})
                 </option>
               ))}
             </optgroup>
           ))}
+          {dbItems.length > 0 && (
+            <optgroup label="My Fixtures (DB)">
+              {dbItems.map((i) => (
+                <option key={`db::${i._id}`} value={`db::${i._id}`}>
+                  {i.brand !== 'Custom' ? `${i.brand} ` : ''}{i.model} ({i.widthPx}×{i.heightPx})
+                </option>
+              ))}
+            </optgroup>
+          )}
         </select>
       </div>
 
