@@ -8,7 +8,7 @@ function snapVal(v, grid) {
   return Math.round(v / Math.max(grid, 1)) * Math.max(grid, 1);
 }
 
-export default function StageViewport({ onMousePos }) {
+export default function StageViewport({ onMousePos, onFitReady }) {
   const containerRef = useRef(null);
   const stageRef = useRef(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
@@ -41,14 +41,34 @@ export default function StageViewport({ onMousePos }) {
     if (stageRef.current) storeStageRef.current = stageRef.current;
   }, [stageRef.current]);
 
+  const fitToContainer = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const w = el.clientWidth;
+    const h = el.clientHeight;
+    setSize({ w, h });
+    const margin = 32;
+    const { canvas: cv } = useProject.getState().project;
+    const fitZoom = Math.min(
+      (w - margin * 2) / cv.widthPx,
+      (h - margin * 2) / cv.heightPx
+    );
+    useProject.getState().setProjectCanvasZoom(fitZoom);
+    setPan({
+      x: (w - cv.widthPx * fitZoom) / 2,
+      y: (h - cv.heightPx * fitZoom) / 2,
+    });
+  }, []);
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const ro = new ResizeObserver(() => setSize({ w: el.clientWidth, h: el.clientHeight }));
     ro.observe(el);
-    setSize({ w: el.clientWidth, h: el.clientHeight });
+    fitToContainer();
+    onFitReady?.(fitToContainer);
     return () => ro.disconnect();
-  }, []);
+  }, [fitToContainer]);
 
   useEffect(() => {
     const onKey = (e) => {

@@ -1,9 +1,10 @@
 import { useProject } from '@/store/projectStore';
 import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut, RotateCcw, Undo2, Redo2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Undo2, Redo2, Maximize2 } from 'lucide-react';
+import { useRef, useCallback } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-export default function StageToolbar() {
+export default function StageToolbar({ onFit }) {
   const { project, setProjectCanvasZoom, undo, redo, _undoStack, _redoStack } = useProject();
   const zoom = project.canvas.zoom ?? 1;
 
@@ -12,11 +13,20 @@ export default function StageToolbar() {
       <div className="h-9 shrink-0 bg-card border-b border-border flex items-center gap-1 px-2">
         <Tooltip>
           <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="w-7 h-7" onClick={onFit}>
+              <Maximize2 className="w-3.5 h-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">Fit to Screen</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => setProjectCanvasZoom(1)}>
               <RotateCcw className="w-3.5 h-3.5" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">Reset Zoom</TooltipContent>
+          <TooltipContent side="bottom" className="text-xs">Reset Zoom (100%)</TooltipContent>
         </Tooltip>
 
         <Tooltip>
