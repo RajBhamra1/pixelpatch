@@ -8,30 +8,24 @@ const deepClone = (v) => {
 };
 const MAX_HISTORY = 100;
 
-const PANELS_LIBRARY = [
-  { brand: 'ROE', model: 'BP2', widthPx: 176, heightPx: 176 },
-  { brand: 'ROE', model: 'BP3 / 3.9', widthPx: 128, heightPx: 128 },
-  { brand: 'ROE', model: 'CB5', widthPx: 104, heightPx: 208 },
-  { brand: 'ROE', model: 'CB5 90°', widthPx: 208, heightPx: 104 },
-  { brand: 'Unilumin', model: 'Upad III 2.6', widthPx: 192, heightPx: 192 },
-  { brand: 'Unilumin', model: 'Upad III 2.9', widthPx: 168, heightPx: 168 },
-  { brand: 'Unilumin', model: 'Upad III 3.9', widthPx: 128, heightPx: 128 },
-  { brand: 'Absen', model: 'A3 Pro 3.9', widthPx: 128, heightPx: 128 },
-  { brand: 'Absen', model: 'PL2.5 Pro', widthPx: 200, heightPx: 200 },
-  { brand: 'INFiLED', model: 'ER 3.9 (500)', widthPx: 128, heightPx: 128 },
-  { brand: 'INFiLED', model: 'ER 3.9 (1000)', widthPx: 128, heightPx: 256 },
-  { brand: 'Gloshine', model: 'MX 2.9', widthPx: 168, heightPx: 168 },
-  { brand: 'Gloshine', model: 'MX 3.9', widthPx: 128, heightPx: 128 },
-  { brand: 'Dicolor', model: 'Matrix 2.6', widthPx: 192, heightPx: 192 },
+// Each panel: widthPx/heightPx = canvas display size, cols/rows = LED pixel grid
+export const PANELS_LIBRARY = [
+  { brand: 'ROE Visual', model: 'BP2',       widthPx: 250, heightPx: 250, cols: 125, rows: 125, pitch: 2.0 },
+  { brand: 'ROE Visual', model: 'BP2.9',     widthPx: 250, heightPx: 250, cols:  86, rows:  86, pitch: 2.9 },
+  { brand: 'ROE Visual', model: 'CB5',       widthPx: 125, heightPx: 250, cols:  26, rows:  52, pitch: 4.8 },
+  { brand: 'ROE Visual', model: 'CB5 (90°)', widthPx: 250, heightPx: 125, cols:  52, rows:  26, pitch: 4.8 },
+  { brand: 'Absen',      model: 'A3 Pro 3.9',widthPx: 250, heightPx: 250, cols:  64, rows:  64, pitch: 3.9 },
+  { brand: 'Absen',      model: 'PL2.5',     widthPx: 250, heightPx: 250, cols: 100, rows: 100, pitch: 2.5 },
+  { brand: 'Unilumin',   model: 'Upad 2.6',  widthPx: 250, heightPx: 250, cols:  96, rows:  96, pitch: 2.6 },
+  { brand: 'Unilumin',   model: 'Upad 3.9',  widthPx: 250, heightPx: 250, cols:  64, rows:  64, pitch: 3.9 },
+  { brand: 'INFiLED',    model: 'ER 3.9',    widthPx: 250, heightPx: 250, cols:  64, rows:  64, pitch: 3.9 },
+  { brand: 'Gloshine',   model: 'MX 2.9',    widthPx: 250, heightPx: 250, cols:  86, rows:  86, pitch: 2.9 },
+  { brand: 'Dicolor',    model: 'Matrix 2.6',widthPx: 250, heightPx: 250, cols:  96, rows:  96, pitch: 2.6 },
 ];
 
 const seedTypes = [
-  { id: nanoid(), name: '500×500', widthPx: 500, heightPx: 500 },
-  { id: nanoid(), name: '1000×500', widthPx: 1000, heightPx: 500 },
-  { id: nanoid(), name: '480×480', widthPx: 480, heightPx: 480 },
-  { id: nanoid(), name: '960×960', widthPx: 960, heightPx: 960 },
-  { id: nanoid(), name: '640×640', widthPx: 640, heightPx: 640 },
-  { id: nanoid(), name: '256×256', widthPx: 256, heightPx: 256 },
+  { id: nanoid(), name: '500×500mm (3.9)', widthPx: 250, heightPx: 250, cols: 128, rows: 128, pitch: 3.9 },
+  { id: nanoid(), name: '500×1000mm (3.9)', widthPx: 250, heightPx: 500, cols: 128, rows: 256, pitch: 3.9 },
 ];
 
 const initialProject = {
@@ -43,13 +37,14 @@ const initialProject = {
     gridSize: 50,
     showGrid: true,
     gridColor: '#333333',
-    canvasBg: '#000000',
+    canvasBg: '#111111',
     viewportBg: '#1a1a2e',
     zoom: 1,
     snapEnabled: false,
-    labelFontSize: 12,
-    labelBg: 'rgba(0,0,0,0.7)',
+    labelFontSize: 11,
+    labelBg: 'rgba(0,0,0,0.75)',
     labelTextColor: '#ffffff',
+    showPixelGrid: true,
     greyMode: false,
   },
   moduleTypes: seedTypes,
@@ -57,8 +52,6 @@ const initialProject = {
   groups: [],
   meta: { createdAt: nowISO(), modifiedAt: nowISO(), version: 1 },
 };
-
-export { PANELS_LIBRARY };
 
 export const useProject = create((set, get) => ({
   project: initialProject,
@@ -103,7 +96,7 @@ export const useProject = create((set, get) => ({
     set((s) => ({
       project: {
         ...s.project,
-        canvas: { ...s.project.canvas, zoom: Math.max(0.05, Math.min(8, zoom)) },
+        canvas: { ...s.project.canvas, zoom: Math.max(0.05, Math.min(16, zoom)) },
         meta: { ...s.project.meta, modifiedAt: nowISO() },
       },
     })),
@@ -178,12 +171,13 @@ export const useProject = create((set, get) => ({
 
   setActiveType: (typeId) => set({ activeType: typeId }),
 
-  addModuleType: (name, widthPx, heightPx) => {
+  // cols/rows = pixel grid; widthPx/heightPx = canvas display size
+  addModuleType: (name, widthPx, heightPx, cols, rows, pitch) => {
     const id = nanoid();
     set((s) => ({
       project: {
         ...s.project,
-        moduleTypes: [...s.project.moduleTypes, { id, name, widthPx, heightPx }],
+        moduleTypes: [...s.project.moduleTypes, { id, name, widthPx, heightPx, cols: cols || 0, rows: rows || 0, pitch: pitch || null }],
         meta: { ...s.project.meta, modifiedAt: nowISO() },
       },
     }));
