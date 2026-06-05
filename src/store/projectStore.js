@@ -199,6 +199,17 @@ export const useProject = create((set, get) => ({
       },
     })),
 
+  bulkAddModules: (items) => {
+    get().pushHistory();
+    set((s) => ({
+      project: {
+        ...s.project,
+        modules: [...s.project.modules, ...items.map((i) => ({ id: nanoid(), rotation: 0, ...i }))],
+        meta: { ...s.project.meta, modifiedAt: nowISO() },
+      },
+    }));
+  },
+
   removeModules: (ids) => {
     get().pushHistory();
     set((s) => ({

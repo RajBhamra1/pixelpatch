@@ -66,6 +66,11 @@ export default function ModulesPanel() {
 
   return (
     <SidebarPanel title="Modules" defaultOpen={true}>
+      {activeType && (
+        <p className="text-xs text-accent bg-accent/10 border border-accent/30 rounded px-2 py-1">
+          ✦ Drag on canvas to place a grid · Click to place one
+        </p>
+      )}
       <div>
         <p className={labelCls}>Active Type</p>
         <select

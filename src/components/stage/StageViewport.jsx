@@ -4,8 +4,6 @@ import { useProject } from '@/store/projectStore';
 import ModuleRect from './ModuleRect';
 import GroupOverlay from './GroupOverlay';
 
-const SNAP_THRESHOLD = 16;
-
 function snapVal(v, grid) {
   return Math.round(v / Math.max(grid, 1)) * Math.max(grid, 1);
 }
@@ -18,7 +16,10 @@ export default function StageViewport({ onMousePos }) {
   const isPanning = useRef(false);
   const lastPan = useRef({ x: 0, y: 0 });
   const spaceDown = useRef(false);
-  const dragStart = useRef(null);
+
+  // Grid drag placement state
+  const [dragRect, setDragRect] = useState(null); // { x, y, w, h } in world coords
+  const dragStart = useRef(null); // world coords where drag started
 
   const {
     project,
@@ -27,6 +28,7 @@ export default function StageViewport({ onMousePos }) {
     setModulesXY,
     pushHistory,
     addModule,
+    bulkAddModules,
     removeModules,
     stageRef: storeStageRef,
   } = useProject();
@@ -34,34 +36,26 @@ export default function StageViewport({ onMousePos }) {
   const { canvas } = project;
   const zoom = canvas.zoom ?? 1;
 
-  // Expose stage ref to store
   useEffect(() => {
     if (stageRef.current) storeStageRef.current = stageRef.current;
   }, [stageRef.current]);
 
-  // Resize observer
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => {
-      setSize({ w: el.clientWidth, h: el.clientHeight });
-    });
+    const ro = new ResizeObserver(() => setSize({ w: el.clientWidth, h: el.clientHeight }));
     ro.observe(el);
     setSize({ w: el.clientWidth, h: el.clientHeight });
     return () => ro.disconnect();
   }, []);
 
-  // Keyboard: delete, arrows, undo/redo
   useEffect(() => {
     const onKey = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selection.ids.length > 0) {
-        removeModules(selection.ids);
-      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selection.ids.length > 0) removeModules(selection.ids);
       if (e.key === ' ') { e.preventDefault(); spaceDown.current = true; }
       if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) useProject.getState().undo();
       if ((e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) useProject.getState().redo();
-
       const nudge = e.shiftKey ? 10 : 1;
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && selection.ids.length > 0) {
         e.preventDefault();
@@ -76,7 +70,14 @@ export default function StageViewport({ onMousePos }) {
     return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('keyup', onKeyUp); };
   }, [selection.ids]);
 
-  // Wheel zoom
+  const getWorldPos = useCallback((stage) => {
+    const pos = stage.getPointerPosition();
+    return {
+      x: (pos.x - pan.x) / zoom,
+      y: (pos.y - pan.y) / zoom,
+    };
+  }, [pan, zoom]);
+
   const onWheel = useCallback((e) => {
     e.evt.preventDefault();
     const scaleBy = 1.08;
@@ -86,66 +87,96 @@ export default function StageViewport({ onMousePos }) {
     const pointer = stage.getPointerPosition();
     const newZoom = e.evt.deltaY < 0 ? oldZoom * scaleBy : oldZoom / scaleBy;
     useProject.getState().setProjectCanvasZoom(newZoom);
-    const mousePointTo = {
-      x: (pointer.x - pan.x) / oldZoom,
-      y: (pointer.y - pan.y) / oldZoom,
-    };
-    setPan({
-      x: pointer.x - mousePointTo.x * newZoom,
-      y: pointer.y - mousePointTo.y * newZoom,
-    });
+    const mousePointTo = { x: (pointer.x - pan.x) / oldZoom, y: (pointer.y - pan.y) / oldZoom };
+    setPan({ x: pointer.x - mousePointTo.x * newZoom, y: pointer.y - mousePointTo.y * newZoom });
   }, [zoom, pan]);
 
-  // Mouse move for pan and mouse pos reporting
   const onMouseMove = useCallback((e) => {
     const stage = stageRef.current;
     if (!stage) return;
-    const pos = stage.getPointerPosition();
-    const worldX = (pos.x - pan.x) / zoom;
-    const worldY = (pos.y - pan.y) / zoom;
-    onMousePos?.({ x: Math.round(worldX), y: Math.round(worldY) });
+    const { x: wx, y: wy } = getWorldPos(stage);
+    onMousePos?.({ x: Math.round(wx), y: Math.round(wy) });
 
     if (isPanning.current) {
       const dx = e.evt.clientX - lastPan.current.x;
       const dy = e.evt.clientY - lastPan.current.y;
       lastPan.current = { x: e.evt.clientX, y: e.evt.clientY };
       setPan((p) => ({ x: p.x + dx, y: p.y + dy }));
+    } else if (dragStart.current) {
+      const sx = dragStart.current.x;
+      const sy = dragStart.current.y;
+      setDragRect({
+        x: Math.min(sx, wx),
+        y: Math.min(sy, wy),
+        w: Math.abs(wx - sx),
+        h: Math.abs(wy - sy),
+      });
     }
-  }, [pan, zoom, onMousePos]);
+  }, [pan, zoom, onMousePos, getWorldPos]);
 
   const onMouseDown = useCallback((e) => {
     if (spaceDown.current || e.evt.button === 1) {
       isPanning.current = true;
       lastPan.current = { x: e.evt.clientX, y: e.evt.clientY };
       e.evt.preventDefault();
+      return;
     }
-  }, []);
+    // Only start grid drag if activeType is set and clicking on stage bg
+    const { activeType } = useProject.getState();
+    if (activeType && e.target === e.target.getStage()) {
+      const stage = stageRef.current;
+      if (!stage) return;
+      const { x, y } = getWorldPos(stage);
+      dragStart.current = { x, y };
+      setDragRect({ x, y, w: 0, h: 0 });
+    }
+  }, [getWorldPos]);
 
-  const onMouseUp = useCallback(() => { isPanning.current = false; }, []);
+  const onMouseUp = useCallback((e) => {
+    isPanning.current = false;
 
-  // Click on stage background = deselect
+    if (dragStart.current && dragRect) {
+      const { activeType, project: proj } = useProject.getState();
+      if (activeType && (dragRect.w > 5 || dragRect.h > 5)) {
+        const type = proj.moduleTypes.find((t) => t.id === activeType);
+        if (type) {
+          const cols = Math.max(1, Math.round(dragRect.w / type.widthPx));
+          const rows = Math.max(1, Math.round(dragRect.h / type.heightPx));
+          const items = [];
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              items.push({
+                typeId: activeType,
+                x: Math.round(dragRect.x + c * type.widthPx),
+                y: Math.round(dragRect.y + r * type.heightPx),
+              });
+            }
+          }
+          if (items.length > 0) bulkAddModules(items);
+        }
+      } else if (activeType && dragRect.w <= 5 && dragRect.h <= 5) {
+        // Single click — place one
+        const { project: proj } = useProject.getState();
+        let wx = dragStart.current.x;
+        let wy = dragStart.current.y;
+        if (proj.canvas.snapEnabled) {
+          wx = snapVal(wx, proj.canvas.gridSize);
+          wy = snapVal(wy, proj.canvas.gridSize);
+        }
+        pushHistory();
+        addModule(activeType, Math.round(wx), Math.round(wy));
+      }
+    }
+
+    dragStart.current = null;
+    setDragRect(null);
+  }, [dragRect, pushHistory, addModule, bulkAddModules]);
+
   const onStageClick = useCallback((e) => {
-    if (e.target === e.target.getStage()) {
+    if (!dragStart.current && e.target === e.target.getStage()) {
       setSelection([]);
     }
   }, [setSelection]);
-
-  // Place module on double-click
-  const onStageDblClick = useCallback((e) => {
-    const { activeType, project: proj } = useProject.getState();
-    if (!activeType) return;
-    const stage = stageRef.current;
-    if (!stage) return;
-    const pos = stage.getPointerPosition();
-    let wx = (pos.x - pan.x) / zoom;
-    let wy = (pos.y - pan.y) / zoom;
-    if (proj.canvas.snapEnabled) {
-      wx = snapVal(wx, proj.canvas.gridSize);
-      wy = snapVal(wy, proj.canvas.gridSize);
-    }
-    pushHistory();
-    addModule(activeType, Math.round(wx), Math.round(wy));
-  }, [pan, zoom, pushHistory, addModule]);
 
   // Grid lines
   const gridLines = [];
@@ -163,11 +194,58 @@ export default function StageViewport({ onMousePos }) {
     }
   }
 
+  // Compute drag preview grid
+  let dragPreview = null;
+  if (dragRect && dragRect.w > 5) {
+    const { activeType, project: proj } = useProject.getState();
+    const type = proj.moduleTypes.find((t) => t.id === activeType);
+    if (type) {
+      const cols = Math.max(1, Math.round(dragRect.w / type.widthPx));
+      const rows = Math.max(1, Math.round(dragRect.h / type.heightPx));
+      const snappedW = cols * type.widthPx;
+      const snappedH = rows * type.heightPx;
+      const cells = [];
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          cells.push(
+            <Rect
+              key={`pc${r}-${c}`}
+              x={dragRect.x + c * type.widthPx}
+              y={dragRect.y + r * type.heightPx}
+              width={type.widthPx}
+              height={type.heightPx}
+              fill="rgba(139,92,246,0.15)"
+              stroke="rgba(139,92,246,0.8)"
+              strokeWidth={1 / zoom}
+            />
+          );
+        }
+      }
+      dragPreview = (
+        <>
+          {cells}
+          <Text
+            x={dragRect.x + snappedW / 2 - 30}
+            y={dragRect.y + snappedH / 2 - 10}
+            text={`${cols} × ${rows}`}
+            fontSize={14 / zoom}
+            fill="#a78bfa"
+            fontStyle="bold"
+            listening={false}
+          />
+        </>
+      );
+    }
+  }
+
+  const { activeType } = useProject.getState();
+  const cursorStyle = spaceDown.current ? 'grab' : activeType ? 'crosshair' : 'default';
+
   return (
     <div
       ref={containerRef}
       className="w-full h-full overflow-hidden"
-      style={{ background: canvas.viewportBg, cursor: spaceDown.current ? 'grab' : 'default' }}
+      style={{ background: canvas.viewportBg, cursor: cursorStyle }}
     >
       <Stage
         ref={stageRef}
@@ -178,31 +256,14 @@ export default function StageViewport({ onMousePos }) {
         onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}
         onClick={onStageClick}
-        onDblClick={onStageDblClick}
       >
         <Layer x={pan.x} y={pan.y} scaleX={zoom} scaleY={zoom}>
-          {/* Canvas background */}
           <Rect x={0} y={0} width={canvas.widthPx} height={canvas.heightPx} fill={canvas.canvasBg} />
-
-          {/* Grid */}
           {gridLines}
-
-          {/* Canvas border */}
-          <Rect
-            x={0} y={0}
-            width={canvas.widthPx} height={canvas.heightPx}
-            stroke="#444" strokeWidth={1 / zoom} fill="transparent"
-          />
-
-          {/* Group overlays */}
-          {project.groups.map((g) => (
-            <GroupOverlay key={g.id} group={g} zoom={zoom} />
-          ))}
-
-          {/* Modules */}
-          {project.modules.map((m) => (
-            <ModuleRect key={m.id} module={m} zoom={zoom} />
-          ))}
+          <Rect x={0} y={0} width={canvas.widthPx} height={canvas.heightPx} stroke="#444" strokeWidth={1 / zoom} fill="transparent" />
+          {project.groups.map((g) => <GroupOverlay key={g.id} group={g} zoom={zoom} />)}
+          {project.modules.map((m) => <ModuleRect key={m.id} module={m} zoom={zoom} />)}
+          {dragPreview}
         </Layer>
       </Stage>
     </div>
