@@ -18,7 +18,8 @@ export default function StageViewport({ onMousePos }) {
   const spaceDown = useRef(false);
 
   // Grid drag placement state
-  const [dragRect, setDragRect] = useState(null); // { x, y, w, h } in world coords
+  const [dragRect, setDragRect] = useState(null); // { x, y, w, h } in world coords — for rendering
+  const dragRectRef = useRef(null);               // same value, always current — for event handlers
   const dragStart = useRef(null); // world coords where drag started
 
   const {
@@ -105,12 +106,14 @@ export default function StageViewport({ onMousePos }) {
     } else if (dragStart.current) {
       const sx = dragStart.current.x;
       const sy = dragStart.current.y;
-      setDragRect({
+      const r = {
         x: Math.min(sx, wx),
         y: Math.min(sy, wy),
         w: Math.abs(wx - sx),
         h: Math.abs(wy - sy),
-      });
+      };
+      dragRectRef.current = r;
+      setDragRect(r);
     }
   }, [pan, zoom, onMousePos, getWorldPos]);
 
@@ -121,9 +124,10 @@ export default function StageViewport({ onMousePos }) {
       e.evt.preventDefault();
       return;
     }
-    // Only start grid drag if activeType is set and clicking on stage bg
+    // Start grid drag if activeType is set and not clicking a module
     const { activeType } = useProject.getState();
-    if (activeType && e.target === e.target.getStage()) {
+    const clickedOnModule = e.target !== e.target.getStage() && e.target.getParent()?.getAttr('moduleId');
+    if (activeType && !clickedOnModule) {
       const stage = stageRef.current;
       if (!stage) return;
       const { x, y } = getWorldPos(stage);
@@ -132,50 +136,56 @@ export default function StageViewport({ onMousePos }) {
     }
   }, [getWorldPos]);
 
-  const onMouseUp = useCallback((e) => {
+  const onMouseUp = useCallback(() => {
     isPanning.current = false;
 
-    if (dragStart.current && dragRect) {
+    if (dragStart.current) {
       const { activeType, project: proj } = useProject.getState();
-      if (activeType && (dragRect.w > 5 || dragRect.h > 5)) {
-        const type = proj.moduleTypes.find((t) => t.id === activeType);
-        if (type) {
-          const cols = Math.max(1, Math.round(dragRect.w / type.widthPx));
-          const rows = Math.max(1, Math.round(dragRect.h / type.heightPx));
-          const items = [];
-          for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-              items.push({
-                typeId: activeType,
-                x: Math.round(dragRect.x + c * type.widthPx),
-                y: Math.round(dragRect.y + r * type.heightPx),
-              });
+      const dr = dragRectRef.current;
+
+      if (activeType) {
+        if (dr && (dr.w > 10 || dr.h > 10)) {
+          // Drag — place grid
+          const type = proj.moduleTypes.find((t) => t.id === activeType);
+          if (type) {
+            const cols = Math.max(1, Math.round(dr.w / type.widthPx));
+            const rows = Math.max(1, Math.round(dr.h / type.heightPx));
+            const items = [];
+            for (let r = 0; r < rows; r++) {
+              for (let c = 0; c < cols; c++) {
+                items.push({
+                  typeId: activeType,
+                  x: Math.round(dr.x + c * type.widthPx),
+                  y: Math.round(dr.y + r * type.heightPx),
+                });
+              }
             }
+            if (items.length > 0) bulkAddModules(items);
           }
-          if (items.length > 0) bulkAddModules(items);
+        } else {
+          // Click — place one
+          let wx = dragStart.current.x;
+          let wy = dragStart.current.y;
+          if (proj.canvas.snapEnabled) {
+            wx = snapVal(wx, proj.canvas.gridSize);
+            wy = snapVal(wy, proj.canvas.gridSize);
+          }
+          pushHistory();
+          addModule(activeType, Math.round(wx), Math.round(wy));
         }
-      } else if (activeType && dragRect.w <= 5 && dragRect.h <= 5) {
-        // Single click — place one
-        const { project: proj } = useProject.getState();
-        let wx = dragStart.current.x;
-        let wy = dragStart.current.y;
-        if (proj.canvas.snapEnabled) {
-          wx = snapVal(wx, proj.canvas.gridSize);
-          wy = snapVal(wy, proj.canvas.gridSize);
-        }
-        pushHistory();
-        addModule(activeType, Math.round(wx), Math.round(wy));
       }
     }
 
     dragStart.current = null;
+    dragRectRef.current = null;
     setDragRect(null);
-  }, [dragRect, pushHistory, addModule, bulkAddModules]);
+  }, [pushHistory, addModule, bulkAddModules]);
 
   const onStageClick = useCallback((e) => {
-    if (!dragStart.current && e.target === e.target.getStage()) {
-      setSelection([]);
-    }
+    const { activeType } = useProject.getState();
+    // If in placement mode, don't deselect (placement handled in mouseUp)
+    if (activeType) return;
+    setSelection([]);
   }, [setSelection]);
 
   // Grid lines
