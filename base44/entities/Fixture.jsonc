@@ -4,7 +4,7 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "Fixture name"
+      "description": "Fixture display name"
     },
     "type": {
       "type": "string",
@@ -14,21 +14,41 @@
       ],
       "description": "Fixture type"
     },
+    "brand": {
+      "type": "string",
+      "description": "Manufacturer brand (e.g. ROE Visual, Absen, Aluvision, Custom)"
+    },
+    "model": {
+      "type": "string",
+      "description": "Exact model / part number (e.g. CB5, BP2V2, SA2.6)"
+    },
+    "pixel_pitch_mm": {
+      "type": "number",
+      "description": "Pixel pitch in millimetres"
+    },
     "pixel_count": {
       "type": "number",
-      "description": "Number of pixels (strips)"
+      "description": "Number of pixels (strips only)"
     },
     "rows": {
       "type": "number",
-      "description": "Number of rows (panels)"
+      "description": "Pixel rows per panel"
     },
     "cols": {
       "type": "number",
-      "description": "Number of columns (panels)"
+      "description": "Pixel columns per panel"
+    },
+    "panel_width_mm": {
+      "type": "number",
+      "description": "Physical panel width in mm"
+    },
+    "panel_height_mm": {
+      "type": "number",
+      "description": "Physical panel height in mm"
     },
     "description": {
       "type": "string",
-      "description": "Optional notes"
+      "description": "Optional notes / category (e.g. Virtual Production, Rental, Outdoor)"
     }
   },
   "required": [
