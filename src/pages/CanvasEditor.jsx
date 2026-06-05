@@ -19,6 +19,13 @@ export default function CanvasEditor() {
   const [paintColor, setPaintColor] = useState('#FF0088');
   const [isDragging, setIsDragging] = useState(false);
   const [dragInfo, setDragInfo] = useState(null);
+  const [resolution, setResolution] = useState('4k');
+
+  const RESOLUTIONS = {
+    '1080p': { w: 1920, h: 1080, label: '1080p' },
+    '4k':    { w: 3840, h: 2160, label: '4K' },
+  };
+  const canvasSize = RESOLUTIONS[resolution] ?? RESOLUTIONS['4k'];
 
   const { data: scenes = [] } = useQuery({
     queryKey: ['scenes'],
@@ -207,8 +214,21 @@ export default function CanvasEditor() {
             onToolChange={setActiveTool}
             onClearAll={handleClearAll}
           />
-          <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground font-mono">
-            {placedFixtures.length} fixture{placedFixtures.length !== 1 ? 's' : ''}
+          <div className="ml-auto flex items-center gap-3">
+            <div className="flex items-center gap-1 border border-border rounded-md overflow-hidden text-xs font-mono">
+              {Object.entries(RESOLUTIONS).map(([key, val]) => (
+                <button
+                  key={key}
+                  onClick={() => setResolution(key)}
+                  className={`px-2 py-1 transition-colors ${resolution === key ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}`}
+                >
+                  {val.label}
+                </button>
+              ))}
+            </div>
+            <span className="text-xs text-muted-foreground font-mono">
+              {placedFixtures.length} fixture{placedFixtures.length !== 1 ? 's' : ''}
+            </span>
           </div>
         </div>
 
@@ -248,7 +268,7 @@ export default function CanvasEditor() {
           ) : null}
 
           {/* Placed fixtures */}
-          <div className="relative" style={{ minWidth: '100%', minHeight: '100%', height: 1200, width: 1800 }}>
+          <div className="relative" style={{ width: canvasSize.w, height: canvasSize.h }}>
             {placedFixtures.map(f => (
               <PlacedFixture
                 key={f.id}
