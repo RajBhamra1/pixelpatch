@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <!-- Gradient -->
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="50%" stop-color="#7C4DFF"/>
+      <stop offset="100%" stop-color="#FF4081"/>
+    </linearGradient>
+
+    <!-- Glow -->
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Dot grid -->
+    <pattern id="dotGrid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="3" fill="url(#grad)" opacity="0.22"/>
+    </pattern>
+  </defs>
+
+  <!-- Rounded background -->
+  <rect x="24" y="24" width="464" height="464" rx="56" fill="#101013" stroke="url(#grad)" stroke-width="8"/>
+
+  <!-- Dot grid -->
+  <rect x="48" y="48" width="416" height="416" rx="40" fill="url(#dotGrid)"/>
+
+  <!-- Your LPM letters -->
+  <g transform="translate(50,130) scale(3.5)" fill="url(#grad)" filter="url(#glow)">
+    <path d="M0 50.55L0 14.50L7.75 14.50L7.75 42.75L36 42.75L36 50.55L0 50.55ZM38.90 50.55L38.90 14.60L67.45 14.60Q69.50 14.60 71.18 15.60Q72.85 16.60 73.88 18.30Q74.90 20.00 74.90 22.00L74.90 31.30Q74.90 33.30 73.88 35Q72.85 36.70 71.18 37.70Q69.50 38.70 67.45 38.70L46.65 38.75L46.65 50.55L38.90 50.55M46.65 30.90L67.05 30.90Q67.05 30.90 67.05 30.90Q67.05 30.90 67.05 30.90L67.05 22.35Q67.05 22.35 67.05 22.35Q67.05 22.35 67.05 22.35L46.65 22.35Q46.65 22.35 46.65 22.35Q46.65 22.35 46.65 22.35L46.65 30.90Q46.65 30.90 46.65 30.90Q46.65 30.90 46.65 30.90ZM78.45 50.55L78.45 14.55L86.45 14.55L98.65 29.10L110.80 14.55L118.85 14.55L118.85 50.55L111.05 50.55L111.05 26.40L98.65 41.20L86.20 26.45L86.20 50.55L78.45 50.55Z"/>
+  </g>
+
+  <!-- Caption -->
+  <text x="256" y="472" text-anchor="middle"
+        font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto"
+        font-size="40" fill="#B9C0FF" opacity="0.9">
+    LED Pixel Map
+  </text>
+</svg>

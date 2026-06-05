@@ -1,0 +1,166 @@
+{
+  "id": "demo-3x3",
+  "name": "3x3 500\u00d7500 on 4K",
+  "canvas": {
+    "widthPx": 3840,
+    "heightPx": 2160,
+    "gridSize": 20,
+    "showGrid": true,
+    "background": null,
+    "logo": {
+      "x": 3300,
+      "y": 80,
+      "size": 200,
+      "locked": false
+    },
+    "guides": [],
+    "zoom": 0.5,
+    "pan": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  "moduleTypes": [
+    {
+      "id": "mt-500x500",
+      "name": "500\u00d7500",
+      "widthPx": 500,
+      "heightPx": 500
+    },
+    {
+      "id": "mt-1000x500",
+      "name": "1000\u00d7500",
+      "widthPx": 1000,
+      "heightPx": 500
+    },
+    {
+      "id": "mt-480x480",
+      "name": "480\u00d7480",
+      "widthPx": 480,
+      "heightPx": 480
+    },
+    {
+      "id": "mt-960x960",
+      "name": "960\u00d7960",
+      "widthPx": 960,
+      "heightPx": 960
+    },
+    {
+      "id": "mt-640x640",
+      "name": "640\u00d7640",
+      "widthPx": 640,
+      "heightPx": 640
+    },
+    {
+      "id": "mt-256x256",
+      "name": "256\u00d7256",
+      "widthPx": 256,
+      "heightPx": 256
+    }
+  ],
+  "modules": [
+    {
+      "id": "m-0-0",
+      "typeId": "mt-500x500",
+      "x": 1170,
+      "y": 330,
+      "rotation": 0,
+      "z": 0,
+      "fill": "#00897b"
+    },
+    {
+      "id": "m-0-1",
+      "typeId": "mt-500x500",
+      "x": 1670,
+      "y": 330,
+      "rotation": 0,
+      "z": 1,
+      "fill": "#00897b"
+    },
+    {
+      "id": "m-0-2",
+      "typeId": "mt-500x500",
+      "x": 2170,
+      "y": 330,
+      "rotation": 0,
+      "z": 2,
+      "fill": "#00897b"
+    },
+    {
+      "id": "m-1-0",
+      "typeId": "mt-500x500",
+      "x": 1170,
+      "y": 830,
+      "rotation": 0,
+      "z": 3,
+      "fill": "#00897b"
+    },
+    {
+      "id": "m-1-1",
+      "typeId": "mt-500x500",
+      "x": 1670,
+      "y": 830,
+      "rotation": 0,
+      "z": 4,
+      "fill": "#00897b"
+    },
+    {
+      "id": "m-1-2",
+      "typeId": "mt-500x500",
+      "x": 2170,
+      "y": 830,
+      "rotation": 0,
+      "z": 5,
+      "fill": "#00897b"
+    },
+    {
+      "id": "m-2-0",
+      "typeId": "mt-500x500",
+      "x": 1170,
+      "y": 1330,
+      "rotation": 0,
+      "z": 6,
+      "fill": "#00897b"
+    },
+    {
+      "id": "m-2-1",
+      "typeId": "mt-500x500",
+      "x": 1670,
+      "y": 1330,
+      "rotation": 0,
+      "z": 7,
+      "fill": "#00897b"
+    },
+    {
+      "id": "m-2-2",
+      "typeId": "mt-500x500",
+      "x": 2170,
+      "y": 1330,
+      "rotation": 0,
+      "z": 8,
+      "fill": "#00897b"
+    }
+  ],
+  "groups": [
+    {
+      "id": "g-main",
+      "name": "Main Wall",
+      "memberIds": [
+        "m-0-0",
+        "m-0-1",
+        "m-0-2",
+        "m-1-0",
+        "m-1-1",
+        "m-1-2",
+        "m-2-0",
+        "m-2-1",
+        "m-2-2"
+      ]
+    }
+  ],
+  "meta": {
+    "createdAt": "now",
+    "modifiedAt": "now",
+    "version": 1
+  }
+}

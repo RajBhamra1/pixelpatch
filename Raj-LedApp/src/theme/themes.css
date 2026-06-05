@@ -1,0 +1,145 @@
+:root {
+  /* ...your existing vars... */
+
+  /* Typography tokens */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fw-regular: 400;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+}
+
+/* Base tokens (fallbacks) — components only read vars */
+:root {
+  --bg-app: #0f0f12;
+  --bg-sidebar: #141418;
+  --bg-toolbar: #1b1b1f;
+  --bg-panel: #1b1d24;
+  --bg-viewport: #101013;
+
+  --text: #e8eaff;
+  --text-muted: #aab0c7;
+
+  --border: #2a2a2a;
+  --card-border: rgba(255,255,255,0.10);
+
+  --accent-1: #00e5ff;
+  --accent-2: #7c4dff;
+  --accent-3: #ff4081;
+
+  --button: #23262f;
+  --button-border: rgba(255,255,255,0.15);
+  --button-hover: #2a2f3a;
+
+  --grid-dot: rgba(124,77,255,0.35);
+
+  --radius: 12px;
+  --shadow-lg: 0 14px 44px rgba(0,0,0,0.55);
+}
+
+/* THEME: Neon (splash look) */
+:root[data-theme="neon"] {
+  --bg-app: #0f0f12;
+  --bg-sidebar: #141418;
+  --bg-toolbar: #1b1b1f;
+  --bg-panel: #181a22;
+  --bg-viewport: #0f0f12;
+
+  --text: #e8eaff;
+  --text-muted: #b9c0ff;
+
+  --border: #2a2a2a;
+  --card-border: rgba(255,255,255,0.08);
+
+  --accent-1: #00e5ff;
+  --accent-2: #7c4dff;
+  --accent-3: #ff4081;
+
+  --button: #23262f;
+  --button-hover: #2b3040;
+
+  --grid-dot: rgba(124,77,255,0.35);
+
+  --radius: 12px;
+  --shadow-lg: 0 14px 44px rgba(0,0,0,0.55);
+}
+
+/* THEME: Dark (neutral) */
+:root[data-theme="dark"] {
+  --bg-app: #0d0f12;
+  --bg-sidebar: #121417;
+  --bg-toolbar: #16181c;
+  --bg-panel: #171a1f;
+  --bg-viewport: #0e1013;
+
+  --text: #e6e7ea;
+  --text-muted: #a7adba;
+
+  --border: #262a31;
+  --card-border: rgba(255,255,255,0.07);
+
+  --accent-1: #4cc9f0;
+  --accent-2: #4895ef;
+  --accent-3: #f72585;
+
+  --button: #20242a;
+  --button-hover: #262c33;
+
+  --grid-dot: rgba(72,149,239,0.32);
+}
+
+/* THEME: Light (preview) */
+:root[data-theme="light"] {
+  --bg-app: #f6f7fb;
+  --bg-sidebar: #ffffff;
+  --bg-toolbar: #ffffff;
+  --bg-panel: #ffffff;
+  --bg-viewport: #f2f3f7;
+
+  --text: #101215;
+  --text-muted: #4b5563;
+
+  --border: #e5e7eb;
+  --card-border: rgba(10,10,10,0.08);
+
+  --accent-1: #06b6d4;
+  --accent-2: #7c3aed;
+  --accent-3: #ef4444;
+
+  --button: #f3f4f6;
+  --button-hover: #e5e7eb;
+
+  --grid-dot: rgba(124,58,237,0.22);
+}
+
+/* THEME: Sunbelt Rentals (Film & TV) */
+:root[data-theme="sunbelt"] {
+  --bg-app: #49525e;        /* Brand grey background */
+  --bg-sidebar: #3f4752;    /* Slightly darker grey for sidebar */
+  --bg-toolbar: #414b56;    /* Toolbar grey */
+  --bg-panel: #4d5763;      /* Panel grey */
+  --bg-viewport: #3a414c;   /* Canvas background */
+
+  --text: #ffffff;          /* White text for high contrast */
+  --text-muted: #c8cdd2;    /* Softer grey for muted text */
+
+  --border: #2f363f;        
+  --card-border: rgba(255, 255, 255, 0.08);
+
+  --accent-1: #FED203;      /* Sunbelt Yellow */
+  --accent-2: #008545;      /* Sunbelt Green */
+  --accent-3: #808080;      /* Neutral grey */
+
+  --button: #3b434d;        /* Dark grey button */
+  --button-hover: #505a66;  /* Lighter grey hover */
+
+  --grid-dot: rgba(254, 210, 3, 0.4); /* Semi-transparent Sunbelt yellow */
+
+  --radius: 12px;
+  --shadow-lg: 0 14px 44px rgba(0, 0, 0, 0.55);
+}
